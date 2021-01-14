@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.socket.io/socket.io-3.0.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-giJF6kkoqNQ00vy+HMDP7azOuL0xtbfIcaT9wjKHr8RbDVddVHyTfAAsrekwKmP1" crossorigin="anonymous">
+    <title>Chat </title>
+</head>
+<style>
+    #app {
+        font-family: Avenir, Helvetica, Arial, sans-serif;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        text-align: center;
+        color: #2c3e50;
+        margin-top: 60px;
+        margin-left: 50px;
+        margin-right: 800px;
+    }
+
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    #chat {
+        height: 80%;
+        display: inline;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+    }
+
+    input {
+        width: 600px;
+        border: 1px solid #ddd;
+        height: 50px;
+        padding: 0 20px;
+        font-size: 14px;
+    }
+
+    button {
+        width: 600px;
+        height: 50px;
+        font-size: 14px;
+        background: #069;
+        text-align: center;
+        line-height: 50px;
+        font-weight: bold;
+        color: #fff;
+        margin-top: 10px;
+    }
+
+    .messages {
+        width: 600px;
+        height: 400px;
+        margin: 20px 0;
+        border: 1px solid #ddd;
+        padding: 20px;
+    }
+</style>
+
+<body>
+    <div id="app">
+
+        <form class="row" @submit.prevent="send" id="Chat">
+            <input type="text" v-model="username" placeholder="digite o usuario">
+            <div id="tela" class="messages">
+                <div v-for="men in messages">
+                    <strong>{{men.user}}</strong> : {{men.message}}
+                </div>
+
+            </div>
+            <input type="text" v-model="newMessage" placeholder="digite a menssagem">
+            <button type="submit">Enviar</button>
+        </form>
+    </div>
+    <script>
+        const socket = io('http://localhost:3000/');
+
+        const vue = new Vue({
+            el: '#app',
+            data: {
+
+                messages: [],
+                newMessage: null,
+                username: null,
+                user: null,
+                messagem: null,
+
+                connections: 0,
+
+            },
+            methods: {
+                async send() {
+                    this.messages.push({
+                        message: this.newMessage,
+                        user: this.username,
+                    })
+
+                    socket.emit('sendMenssage', {
+                        message: this.newMessage,
+                        user: this.username,
+
+                    });
+                    this.receber();
+
+                    socket.on('previousMessages', (data) => {
+                        this.messages = data;
+
+                    });
+                },
+                receber() {
+
+                    socket.on('receivedMessage', (data) => {
+                        this.messages = data;
+
+                    });
+
+
+                    socket.on('previousMessages', (data) => {
+                        this.messages = data;
+
+                    });
+                }
+
+            },
+            created() {
+                this.receber();
+            }
+
+        })
+
+
+    </script>
+</body>
+
+</html>
